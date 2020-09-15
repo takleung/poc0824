@@ -1,0 +1,70 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+    pipeline.alpha.openshift.io/uses: '[{"name": "jenkins", "namespace": "", "kind": "DeploymentConfig"}]'
+  name: tasks-pipeline-skopeo
+  namespace: cicd-admin
+  labels:
+    app: cicd-pipeline
+    group: cicd
+    name: cicd-pipeline
+    template: cicd
+spec:
+  nodeSelector: {}
+  output: {}
+  resources: {}
+  successfulBuildsHistoryLimit: 5
+  failedBuildsHistoryLimit: 5
+  strategy:
+    type: JenkinsPipeline
+    jenkinsPipelineStrategy:
+      jenkinsfile: |-
+        def mvnCmd = "mvn -s configuration/cicd-settings-nexus3.xml"
+
+        pipeline {
+          agent {
+            label 'maven'
+          }
+          stages {
+            stage('Promote to STAGE?') {
+              agent {
+                label 'skopeo'
+              }
+              steps {
+                input message: "Promote to STAGE?", ok: "Promote"
+
+                script {
+                  openshift.withCluster() {
+                    if (env.ENABLE_QUAY.toBoolean()) {
+                      withCredentials([usernamePassword(credentialsId: "${openshift.project()}-quay-cicd-secret", usernameVariable: "QUAY_USER", passwordVariable: "QUAY_PWD")]) {
+                        sh "skopeo copy docker://quay.io/tyip/tasks-app:latest docker://quay.io/tyip/tasks-app:stage --src-creds \"$QUAY_USER:$QUAY_PWD\" --dest-creds \"$QUAY_USER:$QUAY_PWD\" --src-tls-verify=false --dest-tls-verify=false"
+                      }
+                    } else {
+                      openshift.tag("${env.DEV_PROJECT}/tasks:latest", "${env.STAGE_PROJECT}/tasks:stage")
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      env:
+        - name: DEV_PROJECT
+          value: dev-opentlc
+        - name: STAGE_PROJECT
+          value: stage-opentlc
+        - name: ENABLE_QUAY
+          value: 'true'
+  postCommit: {}
+  source:
+    type: None
+  triggers:
+    - type: GitHub
+      github:
+        secret: HSB2uKsc
+    - type: Generic
+      generic:
+        secret: HSB2uKsc
+  runPolicy: Serial
