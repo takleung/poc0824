@@ -1,0 +1,14 @@
+
+oc login -u admin -p nopass
+show web ui
+oc login -u developer -p nopass
+show web ui
+
+oc login -u admin -p nopass
+oc get groups
+
+oc login -u qa-engineer -p nopass
+oc scale deployment httpd --replicas 3
+
+oc login -u developer -p nopass
+oc scale deployment httpd --replicas 3

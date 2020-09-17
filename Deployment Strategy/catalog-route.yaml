@@ -1,0 +1,24 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  annotations:
+    haproxy.router.openshift.io/balance: roundrobin
+    haproxy.router.openshift.io/disable_cookies: 'true'
+    openshift.io/host.generated: 'true'
+  name: catalog
+  namespace: coolstore
+  labels:
+    app: catalog
+    comp-required: 'true'
+    demo: coolstore-microservice
+spec:
+  host: catalog-coolstore.apps.poc1.rhocp.hkjc
+  to:
+    kind: Service
+    name: catalog-blue
+    weight: 100
+  alternateBackends:
+    - kind: Service
+      name: catalog-green
+      weight: 0
+  wildcardPolicy: None

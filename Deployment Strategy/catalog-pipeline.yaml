@@ -1,0 +1,87 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: catalog-pipeline
+  namespace: cicd-admin
+  labels:
+    build: catalog-pipeline
+    demo: coolstore-microservice
+    template: catalog-pipeline
+spec:
+  nodeSelector: {}
+  output: {}
+  resources: {}
+  successfulBuildsHistoryLimit: 5
+  failedBuildsHistoryLimit: 5
+  strategy:
+    type: JenkinsPipeline
+    jenkinsPipelineStrategy:
+      jenkinsfile: |-
+        def tag,altTag
+
+        pipeline {
+          agent any
+          stages {
+
+
+
+            stage('Deploy to PROD (Not Live)') {
+              steps {
+                script {
+                  openshift.withCluster() {
+                    openshift.withProject(env.COOLSTORE_PROD_PROJECT) {
+                      def route = openshift.selector("route", "catalog").object()
+                      def backends = []
+                      backends.add(route.spec.to)
+                      backends.addAll(route.spec.alternateBackends)
+                      def svc = backends.find {it.weight == 100}
+                      tag = svc.name == "catalog-green" ? "blue" : "green"
+                      altTag = svc.name == "catalog-green" ? "green" : "blue"
+
+                      //openshift.tag("${env.COOLSTORE_TEST_PROJECT}/catalog:test", "${env.COOLSTORE_PROD_PROJECT}/catalog:prod-${tag}")
+                      //openshift.selector("dc", "catalog-${tag}").rollout().status()
+                    }
+                  }
+                }
+              }
+            }
+
+
+
+            stage('Approve Go Live') {
+              steps {
+                timeout(time:15, unit:'MINUTES') {
+                    input message: "Go Live in Production (switch to new version)?", ok: "Go Live"
+                }
+              }
+            }
+
+            stage('Go Live') {
+              steps {
+                script {
+                  openshift.withCluster() {
+                    openshift.withProject(env.COOLSTORE_PROD_PROJECT) {
+                      openshift.set("route-backends", "catalog", "--adjust", "catalog-${tag}=100%")
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      env:
+        - name: COOLSTORE_TEST_PROJECT
+          value: coolstore-test-demo
+        - name: COOLSTORE_PROD_PROJECT
+          value: coolstore
+  postCommit: {}
+  source:
+    type: None
+  triggers:
+    - type: GitHub
+      github:
+        secret: ExAxt23M
+    - type: Generic
+      generic:
+        secret: secret
+  runPolicy: Serial

@@ -1,0 +1,3 @@
+oc login -u admin -p nopass
+oc describe scc restricted
+oc describe scc anyuid

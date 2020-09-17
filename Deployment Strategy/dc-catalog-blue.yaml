@@ -1,0 +1,79 @@
+kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  name: catalog-blue
+  namespace: coolstore
+  labels:
+    app: catalog-blue
+spec:
+  strategy:
+    type: Rolling
+    rollingParams:
+      updatePeriodSeconds: 1
+      intervalSeconds: 1
+      timeoutSeconds: 600
+      maxUnavailable: 25%
+      maxSurge: 25%
+    resources: {}
+    activeDeadlineSeconds: 21600
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - catalog-blue
+        from:
+          kind: ImageStreamTag
+          namespace: coolstore
+          name: 'catalog:blue'
+        lastTriggeredImage: >-
+          quay.io/tyip/catalog@sha256:ad45a59077a20742f40fd12766183c71869d7f0a32b4bba62ab48ed93b4b2dc2
+  replicas: 1
+  revisionHistoryLimit: 10
+  test: false
+  selector:
+    app: catalog-blue
+    deploymentconfig: catalog-blue
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: catalog-blue
+        deploymentconfig: catalog-blue
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+    spec:
+      containers:
+        - name: catalog-blue
+          image: >-
+            quay.io/tyip/catalog@sha256:ad45a59077a20742f40fd12766183c71869d7f0a32b4bba62ab48ed93b4b2dc2
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8443
+              protocol: TCP
+            - containerPort: 8778
+              protocol: TCP
+          env:
+            - name: JWS_ADMIN_USERNAME
+              value: Skq3VtCd
+            - name: JWS_ADMIN_PASSWORD
+              value: oktt6yhw
+            - name: DB_USERNAME
+              value: userkrj
+            - name: DB_PASSWORD
+              value: 3bDxoTbe
+            - name: DB_NAME
+              value: catalogdb
+            - name: DB_SERVER
+              value: catalog-mongodb
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
