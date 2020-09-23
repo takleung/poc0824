@@ -21,12 +21,12 @@ oc login -u admin -p nopass
 
 oc new-project authorization-rbac
 
-oc policy add-role-to-user admin leader
+oc policy add-role-to-user admin leader -n authorization-rbac
 
 oc adm groups new dev-group
 
 oc adm groups add-users dev-group developer
-de
+
 oc adm groups new qa-group
 
 oc adm groups add-users qa-group qa-engineer
@@ -35,15 +35,16 @@ oc get groups
 
 oc login -u leader -p nopass
 
-oc policy add-role-to-group edit dev-group
+oc policy add-role-to-group edit dev-group -n authorization-rbac
 
-oc policy add-role-to-group view qa-group
+oc policy add-role-to-group view qa-group -n authorization-rbac
+
 
 oc get rolebindings -o wide
 
 oc login -u developer -p developer
 
-oc new-app --name httpd httpd:2.4
+oc new-app --name httpd httpd:2.4 -n authorization-rbac
 
 oc policy add-role-to-user edit qa-engineer
 
@@ -56,3 +57,4 @@ oc login -u admin -p nopass
 oc adm policy add-cluster-role-to-group \
   --rolebinding-name self-provisioners \
   self-provisioner system:authenticated:oauth
+

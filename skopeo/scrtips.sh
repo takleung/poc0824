@@ -6,3 +6,4 @@ oc exec skopeo-bp3rq -- \
     --dest-creds quay:password \
     --src-tls-verify=false \
     --dest-tls-verify=false
+
