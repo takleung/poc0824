@@ -15,3 +15,10 @@ oc tag quay.io/tyip/pricing:latest pricing:latest
 oc tag quay.io/tyip/review:latest review:latest
 oc tag quay.io/tyip/inventory:latest inventory:latest
 oc tag quay.io/tyip/hystrix-dashboard:latest hystrix-dashboard:latest
+
+oc start-build -n cicd-ray catalog-pipeline
+
+oc new-project poc-rollback
+oc rollout latest dc/httpd-example -n poc-rollback
+oc rollback httpd-example -n poc-rollback
+oc rollback httpd-example --to-version=1 -n poc-rollback

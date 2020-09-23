@@ -11,13 +11,13 @@ oc logs pod/gitlab-xxxxxxxxxxx
 
 oc create sa gitlab-sa
 
-oc login -u admin -p redhat
+oc login -u admin -p nopass https://api.poc1.rhocp.hkjc:6443
 
 oc adm policy add-scc-to-user anyuid -z gitlab-sa
 
 oc login -u developer -p developer
 
-oc set serviceaccount deployment gitlab gitlab-sa
+oc set serviceaccount dc gitlab gitlab-sa
 
 oc get pods
 
