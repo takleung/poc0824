@@ -19,6 +19,9 @@ oc tag quay.io/tyip/hystrix-dashboard:latest hystrix-dashboard:latest
 oc start-build -n cicd-ray catalog-pipeline
 
 oc new-project poc-rollback
+*** create httpd from template ***
 oc rollout latest dc/httpd-example -n poc-rollback
 oc rollback httpd-example -n poc-rollback
 oc rollback httpd-example --to-version=1 -n poc-rollback
+
+while : ; do curl http://web-ui-coolstore.apps.cluster-6ca7.6ca7.example.opentlc.com  ; done

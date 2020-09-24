@@ -24,3 +24,14 @@ oc get pods
 oc expose service gitlab --port 80
 
 oc get route gitlab
+
+oc describe scc anyuid
+
+    spec:
+      restartPolicy: Always
+      serviceAccountName: gitlab-sa
+      schedulerName: default-sche
+      
+      duler
+      terminationGracePeriodSeconds: 30
+      securityContext: {}
