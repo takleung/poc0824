@@ -39,7 +39,6 @@ oc policy add-role-to-group edit dev-group -n authorization-rbac
 
 oc policy add-role-to-group view qa-group -n authorization-rbac
 
-
 oc get rolebindings -o wide
 
 oc login -u developer -p developer
